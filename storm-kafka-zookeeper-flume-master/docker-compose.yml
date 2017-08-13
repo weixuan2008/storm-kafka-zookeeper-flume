@@ -1,0 +1,200 @@
+version: '2'
+services: 
+  zoo1:
+    image: zookeeper
+    # restart: always
+    container_name: zoo1
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/data/zoo1:/data
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/zoo1:/datalog
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/conf/zoo1:/conf      
+
+  zoo2:
+    image: zookeeper
+    # restart: always
+    container_name: zoo2
+    ports:
+      - "2182:2181"
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/data/zoo2:/data
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/zoo2:/datalog
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/conf/zoo2:/conf   
+
+  zoo3:
+    image: zookeeper
+    # restart: always
+    container_name: zoo3
+    ports:
+      - "2183:2181"
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/data/zoo3:/data
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/zoo3:/datalog
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/conf/zoo3:/conf  
+
+  kafka1:
+    image: wurstmeister/kafka
+    # restart: always
+    container_name: kafka1
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+    links:
+      - zoo1
+      - zoo2
+      - zoo3
+    environment:
+      KAFKA_LOG_DIRS: /kafka
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: order-info-topic-1:1:2,order-info-topic-2:1:2,order-info-topic-3:1:2,msgTopic1:1:2,msgTopic2:1:2
+      KAFKA_HOST_NAME: kafka1
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.56.101
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_LOG_RETENTION_BYTES: "100000000"
+      KAFKA_ZOOKEEPER_CONNECT:  zoo1:2181,zoo2:2182,zoo3:2183
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/kafka1:/kafka
+      
+  kafka2:
+    image: wurstmeister/kafka
+    # restart: always
+    container_name: kafka2
+    ports:
+      - "9093:9092"
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+    links:
+      - zoo1
+      - zoo2
+      - zoo3
+    environment:
+      KAFKA_LOG_DIRS: /kafka
+      KAFKA_BROKER_ID: 2
+      KAFKA_HOST_NAME: kafka2
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.56.101
+      KAFKA_ADVERTISED_PORT: 9093
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_LOG_RETENTION_BYTES: "100000000"
+      KAFKA_ZOOKEEPER_CONNECT:  zoo1:2181,zoo2:2182,zoo3:2183
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/kafka2:/kafka
+      
+  kafka3:
+    image: wurstmeister/kafka
+    # restart: always
+    container_name: kafka3
+    ports:
+      - "9094:9092"
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+    links:
+      - zoo1
+      - zoo2
+      - zoo3
+    environment:
+      KAFKA_LOG_DIRS: /kafka
+      KAFKA_BROKER_ID: 3
+      KAFKA_HOST_NAME: kafka3
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.56.101
+      KAFKA_ADVERTISED_PORT: 9094
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_LOG_RETENTION_BYTES: "100000000"
+      KAFKA_ZOOKEEPER_CONNECT:  zoo1:2181,zoo2:2182,zoo3:2183
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/kafka3:/kafka
+      
+  nimbus:
+    image: storm
+    container_name: nimbus
+    command: storm nimbus
+    depends_on:
+      - zoo1
+    links:
+      - zoo1:zookeeper
+    ports:
+      - 6627:6627
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/data/storm_nimbus:/data
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/storm_nimbus:/logs
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/conf/storm_nimbus:/conf
+      
+  supervisor:
+    image: storm
+    command: storm supervisor
+    depends_on:
+      - nimbus
+      - zoo1
+    links:
+      - nimbus
+      - zoo1:zookeeper
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/data/storm_supervisor:/data
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/storm_supervisor:/logs
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/conf/storm_supervisor:/conf
+  ui:
+    image: storm
+    container_name: ui
+    command: storm ui
+    ports:
+      - 8080:8080
+    depends_on:
+      - nimbus
+    links:
+      - nimbus
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/data/storm_ui:/data
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/storm_ui:/logs
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/conf/storm_ui:/conf 
+      
+  kafka-web-ui:
+    image: hwestphal/kafka-web-console
+    container_name: kafka-web-ui
+    ports:
+      - "9000:9000"  
+    volumes:
+      -  /home/weixuan/docker-cluster-configuration/new-kafka-cluster/data/kafka-web-ui:/data
+      
+  pschatzmann-flume:
+    image: pschatzmann/flume
+    container_name: pschatzmann-flume
+    ports:
+      - "45454:45454"  
+    volumes:
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/conf/pschatzmann-flume:/flume/conf
+      - /home/weixuan/docker-cluster-configuration/new-kafka-cluster/logs/pschatzmann-flume:/flume/logs
+    environment:
+      - LOGGER=DEBUG,console,LOGFILE
+      - AGENT=a1_to_kafka
+      #- CONFIG=flume.conf
+      
+      
+
+
+
+
+
+
+
+      
+      
