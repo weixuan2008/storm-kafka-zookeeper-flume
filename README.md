@@ -40,8 +40,21 @@
 	docker-compose rm
 
 
+## 3. Running effect ##
+[![][nodesStatus]][website] 
+[![][kafkaUi]][website] 
+[![][stormUi]][website] 
 
 
 
-[ButlerImage]: https://github.com/weixuan2008/storm-kafka-zookeeper-flume/blob/master/storm-kafka-zookeeper-flume-master/arch.png
+## 4. TODO ##
+
+	Support multiple nimbus nodes.
+
+
+
+[ButlerImage]: https://github.com/weixuan2008/storm-kafka-zookeeper-flume/blob/master/storm-kafka-zookeeper-flume-master/images/arch.png
+[nodesStatus]: https://github.com/weixuan2008/storm-kafka-zookeeper-flume/blob/master/storm-kafka-zookeeper-flume-master/images/nodes%20run%20status.PNG
+[kafkaUi]: https://github.com/weixuan2008/storm-kafka-zookeeper-flume/blob/master/storm-kafka-zookeeper-flume-master/images/kafka%20ui.PNG
+[stormUi]: https://github.com/weixuan2008/storm-kafka-zookeeper-flume/blob/master/storm-kafka-zookeeper-flume-master/images/storm%20ui.PNG
 [website]: https://github.com/weixuan2008/storm-kafka-zookeeper-flume
