@@ -6,7 +6,7 @@
 
 ## 2. How to use?  ##
 
-**1. The prerequisite is your must docker engine and docker compose installed.**
+**1. The prerequisite is you must have docker engine and docker compose installed.**
 	
 	docker -v
 	docker-compose -v
